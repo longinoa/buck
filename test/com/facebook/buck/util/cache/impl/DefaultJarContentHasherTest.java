@@ -81,14 +81,14 @@ public class DefaultJarContentHasherTest {
     JarFile cache = new JarFile(toTest);
     assertThat(
         new DefaultJarContentHasher(filesystem, relativeToTestPath).getContentHashes().keySet(),
-        Matchers.contains(Paths.get("Before")));
+        Matchers.contains("Before"));
 
     // Now modify toTest make sure we don't get a cached result when we open it for a second time
     Files.move(modification.toPath(), toTest.toPath(), StandardCopyOption.REPLACE_EXISTING);
     Files.setLastModifiedTime(toTest.toPath(), hardcodedTime);
     assertThat(
         new DefaultJarContentHasher(filesystem, relativeToTestPath).getContentHashes().keySet(),
-        Matchers.contains(Paths.get("After")));
+        Matchers.contains("After"));
     cache.close();
   }
 }

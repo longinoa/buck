@@ -24,6 +24,8 @@ import com.facebook.buck.util.cache.JarHashCodeAndFileType;
 import com.facebook.buck.util.filesystem.FileSystemMap;
 import com.google.common.hash.HashCode;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -92,10 +94,16 @@ class FileSystemMapFileHashCache implements FileHashCacheEngine {
     Path relativeFilePath = archiveRelativePath.normalize();
     JarHashCodeAndFileType fileHashCodeAndFileType =
         (JarHashCodeAndFileType) loadingCache.get(relativeFilePath);
+    String resolvedPath = memberPath.toString();
     HashCodeAndFileType memberHashCodeAndFileType =
-        fileHashCodeAndFileType.getContents().get(memberPath);
+        fileHashCodeAndFileType.getContents().get(resolvedPath);
     if (memberHashCodeAndFileType == null) {
-      throw new NoSuchFileException(archiveRelativePath.toString());
+      StringBuilder builder = new StringBuilder();
+      for (String key : fileHashCodeAndFileType.getContents().keySet()) {
+        builder.append(key);
+      }
+
+      throw new NoSuchFileException(archiveRelativePath.toString(), builder.toString(), resolvedPath);
     }
     return memberHashCodeAndFileType.getHashCode();
   }

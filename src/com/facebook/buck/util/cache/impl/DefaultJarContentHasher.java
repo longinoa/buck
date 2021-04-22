@@ -24,6 +24,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.HashCode;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -50,7 +52,7 @@ class DefaultJarContentHasher implements JarContentHasher {
   }
 
   @Override
-  public ImmutableMap<Path, HashCodeAndFileType> getContentHashes() throws IOException {
+  public ImmutableMap<String, HashCodeAndFileType> getContentHashes() throws IOException {
     Manifest manifest = null;
     try (JarInputStream inputStream =
         new JarInputStream(filesystem.newFileInputStream(jarRelativePath))) {
@@ -72,9 +74,9 @@ class DefaultJarContentHasher implements JarContentHasher {
               + " attributes for each file.");
     }
 
-    ImmutableMap.Builder<Path, HashCodeAndFileType> builder = ImmutableMap.builder();
+
+    ImmutableMap.Builder<String, HashCodeAndFileType> builder = ImmutableMap.builder();
     for (Map.Entry<String, Attributes> nameAttributesEntry : manifest.getEntries().entrySet()) {
-      Path memberPath = Paths.get(nameAttributesEntry.getKey());
       Attributes attributes = nameAttributesEntry.getValue();
       String hashStringValue = attributes.getValue(CustomJarOutputStream.DIGEST_ATTRIBUTE_NAME);
       if (hashStringValue == null) {
@@ -84,7 +86,7 @@ class DefaultJarContentHasher implements JarContentHasher {
       HashCode memberHash = HashCode.fromString(hashStringValue);
       HashCodeAndFileType memberHashCodeAndFileType = HashCodeAndFileType.ofFile(memberHash);
 
-      builder.put(memberPath, memberHashCodeAndFileType);
+      builder.put(nameAttributesEntry.getKey(), memberHashCodeAndFileType);
     }
 
     return builder.build();
